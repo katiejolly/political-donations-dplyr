@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Katie Jolly" />
+
+<meta name="date" content="2017-11-30" />
+
+<title>Political donations from STEM community: learning dplyr!</title>
+
+<script src="donations-dplyr_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="donations-dplyr_files/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="donations-dplyr_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="donations-dplyr_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="donations-dplyr_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="donations-dplyr_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="donations-dplyr_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="donations-dplyr_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="donations-dplyr_files/navigation-1.1/tabsets.js"></script>
+<link href="donations-dplyr_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="donations-dplyr_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlightingOnLoad(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Political donations from STEM community: learning dplyr!</h1>
+<h4 class="author"><em>Katie Jolly</em></h4>
+<h4 class="date"><em>November 30, 2017</em></h4>
+
+</div>
+
+
+<p><link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet"></p>
+<script src="hideOutput.js"></script>
+<div id="setting-up-our-project" class="section level1">
+<h1>Setting up our project</h1>
+<p>In this activity you’ll get an idea of how to work with <code>dplyr</code> to manipulate your data. It’s a flexible and readable way to work with data after a little bit of practice! The goal for this activity should be to gain familiarity with the main data verbs (I’ll explain what those are later!) and start to develop some intuition for when to use each one, and in what order. If you’ve worked with SQL before, you’ll notice some similarities.</p>
+<p>We are using data from fivethirtyeight’s github page on political donations from the STEM community <a href="https://github.com/fivethirtyeight/data/tree/master/science-giving">metadata</a>. The data were featured in the article <a href="https://fivethirtyeight.com/features/when-scientists-donate-to-politicians-its-usually-to-democrats/">when scientists donate to politicians, it’s usually to democrats</a>.</p>
+<div id="assumed-knowledge" class="section level2">
+<h2>Assumed knowledge</h2>
+<p>For this particular activity, I assume you have some familiarity with</p>
+<ul>
+<li><p>RMarkdown</p></li>
+<li><p>Dataframes in R (have a general idea of what they are and how to work with them)</p></li>
+<li><p><code>ggplot2</code> (optional!)</p></li>
+</ul>
+</div>
+<div id="loading-packages-and-data" class="section level2">
+<h2>Loading packages and data</h2>
+<p>We will load the <code>tidyverse</code> package since it includes more than just <code>dplyr</code>. We will also load the <code>lubridate</code> package for one question that involves formatting dates.</p>
+<pre class="r"><code># if you need to install tidyverse, the code is install.packages(&quot;tidyverse&quot;)
+library(tidyverse)
+library(lubridate) # install with install.packages(&quot;lubridate&quot;)
+library(ggthemes) # in case you want to make some plots!</code></pre>
+<p>I like loading from the github page, and in this case it looks like the <code>fivethirtyeight</code> package does not yet include this data! When you load this, you’ll notice it takes a while. With this in mind, write {r cache=TRUE} in place of the usual {r} at the top of the chunk. This caches (saves) your data so that it doesn’t have to load every time you knit. But also with this in mind, be careful that loading the data is the only code in that chunk! You don’t want to cache other things.</p>
+<pre class="r"><code># from the github url
+donations &lt;- read_csv(&quot;https://media.githubusercontent.com/media/fivethirtyeight/data/master/science-giving/science_federal_giving.csv&quot;)</code></pre>
+<p>This table is quite large– in fact it has 881793 observations. We are going to take a random sample of 100000 entries so that it’s a little easier to work with. We will use <code>sample_n()</code> to take a random sample of n observations (our first dplyr function!).</p>
+<pre class="r"><code>donations_small &lt;- sample_n(tbl = donations, size = 100000) # take a sample of 100000 observations from the donations table. </code></pre>
+<pre class="r"><code>str(donations_small)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    100000 obs. of  31 variables:
+##  $ cmte_nm             : chr  &quot;ROMNEY FOR PRESIDENT INC.&quot; NA &quot;OBAMA FOR AMERICA&quot; &quot;RICK SANTORUM FOR PRESIDENT INC.&quot; ...
+##  $ cmte_id             : chr  &quot;C00431171&quot; NA &quot;C00431445&quot; &quot;C00496034&quot; ...
+##  $ cmte_tp             : chr  &quot;P&quot; NA &quot;P&quot; &quot;P&quot; ...
+##  $ cmte_pty            : chr  &quot;REP&quot; NA &quot;DEM&quot; &quot;REP&quot; ...
+##  $ cand_name           : chr  &quot;ROMNEY, MITT&quot; NA &quot;OBAMA, BARACK&quot; &quot;SANTORUM, RICHARD J.&quot; ...
+##  $ cand_pty_affiliation: chr  &quot;REP&quot; NA &quot;DEM&quot; &quot;REP&quot; ...
+##  $ cand_office_st      : chr  &quot;US&quot; NA &quot;US&quot; &quot;US&quot; ...
+##  $ cand_office         : chr  &quot;P&quot; NA &quot;P&quot; &quot;P&quot; ...
+##  $ cand_office_district: chr  &quot;0&quot; NA &quot;0&quot; &quot;0&quot; ...
+##  $ cand_status         : chr  &quot;C&quot; NA &quot;C&quot; &quot;C&quot; ...
+##  $ rpt_tp              : chr  &quot;M9&quot; NA &quot;12G&quot; &quot;M4&quot; ...
+##  $ transaction_pgi     : chr  &quot;P&quot; NA &quot;G&quot; &quot;P&quot; ...
+##  $ transaction_tp      : chr  &quot;15&quot; NA &quot;15&quot; &quot;15&quot; ...
+##  $ entity_tp           : chr  &quot;IND&quot; NA &quot;IND&quot; &quot;IND&quot; ...
+##  $ cleaned_name        : chr  &quot;GUCCIONE, LOUIS J. MR.&quot; NA &quot;FORD, GLEN&quot; &quot;FARRIS, MELVIN&quot; ...
+##  $ city                : chr  &quot;EASTCHESTER&quot; NA &quot;AUSTIN&quot; &quot;PRAIRIE DU CHIEN&quot; ...
+##  $ state               : chr  &quot;NY&quot; NA &quot;TX&quot; &quot;WI&quot; ...
+##  $ zip_code            : int  10709 NA 78704 53821 NA NA NA NA 841151836 NA ...
+##  $ employer            : chr  &quot;INTER DIGITAL INC.&quot; NA &quot;DEMAND MEDIA/PLUCK&quot; &quot;3M&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; NA &quot;ENGINEER (SOFTWARE)&quot; &quot;ENGINEER&quot; ...
+##  $ classification      : chr  &quot;Engineer&quot; NA &quot;Engineer&quot; &quot;Engineer&quot; ...
+##  $ transaction_dt      : int  8162012 NA 10082012 3052012 NA NA NA NA 1212016 NA ...
+##  $ cycle               : int  2012 NA 2012 2012 NA NA NA NA 2016 NA ...
+##  $ transaction_amt     : int  200 NA 200 200 NA NA NA NA 25 NA ...
+##  $ 2016_dollars        : num  209 NA 209 209 NA NA NA NA 25 NA ...
+##  $ other_id            : chr  NA NA NA NA ...
+##  $ tran_id             : chr  &quot;SA17.2062014&quot; NA &quot;C24193008&quot; &quot;SA17.800453&quot; ...
+##  $ file_num            : int  896743 NA 897092 780310 NA NA NA NA 1077648 NA ...
+##  $ memo_cd             : chr  NA NA NA NA ...
+##  $ memo_text           : chr  NA NA NA NA ...
+##  $ sub_id              : num  4.12e+18 NA 4.12e+18 4.04e+18 NA ...</code></pre>
+</div>
+</div>
+<div id="data-wrangling" class="section level1">
+<h1>Data wrangling</h1>
+<div id="data-verbs" class="section level2">
+<h2>Data verbs</h2>
+<p><code>dplyr</code> works by using data verbs to act on your data. The same way we use verbs to signal action in a natural language, data verbs perform an action on data. I’ll divide them into some broad categories to start, then give you some practice questions to bring it all together! Similar to <code>ggplot2</code>, dplyr uses a layering framework, so you’ll start to see repeated patterns pretty quickly! <code>dplyr</code> layers through pipes (<code>%&gt;%</code>). In essence, data “flows” through the pipes. This is helpful because it takes out the need for intermediate tables when you are wrangling. The structure is best explained through examples, but the most important thing to note is that when you’re using pipes you don’t need to specify a dataframe in your data verb function. And <strong>order matters</strong> for the data verbs!</p>
+</div>
+<div id="column-verbs-mutate-and-select" class="section level2">
+<h2>Column verbs: mutate and select</h2>
+<p><code>select()</code> and <code>mutate()</code> perform actions on columns (as opposed to rows). <code>select()</code> pulls out (or drops) columns that you specify. <code>mutate()</code> creates new columns.</p>
+<p>Our <code>donations_small</code> table has 31 variables, and chances are pretty good we don’t need all of them. Let’s get rid of some!</p>
+<pre class="r"><code>donations_small_select &lt;- # name the new table
+  donations_small %&gt;% # start with the original table, then pass that down to the next function with a pipe (%&gt;%)
+  select(c(&quot;cand_name&quot;, &quot;cand_pty_affiliation&quot;, &quot;cleanedoccupation&quot;, &quot;transaction_dt&quot;, &quot;transaction_amt&quot;, &quot;city&quot;, &quot;state&quot;, &quot;zip_code&quot;, &quot;cycle&quot;)) # pass a vector of column names that you want to select from the original data. 
+
+str(donations_small_select) # now there are only 9 variables!</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    100000 obs. of  9 variables:
+##  $ cand_name           : chr  &quot;ROMNEY, MITT&quot; NA &quot;OBAMA, BARACK&quot; &quot;SANTORUM, RICHARD J.&quot; ...
+##  $ cand_pty_affiliation: chr  &quot;REP&quot; NA &quot;DEM&quot; &quot;REP&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; NA &quot;ENGINEER (SOFTWARE)&quot; &quot;ENGINEER&quot; ...
+##  $ transaction_dt      : int  8162012 NA 10082012 3052012 NA NA NA NA 1212016 NA ...
+##  $ transaction_amt     : int  200 NA 200 200 NA NA NA NA 25 NA ...
+##  $ city                : chr  &quot;EASTCHESTER&quot; NA &quot;AUSTIN&quot; &quot;PRAIRIE DU CHIEN&quot; ...
+##  $ state               : chr  &quot;NY&quot; NA &quot;TX&quot; &quot;WI&quot; ...
+##  $ zip_code            : int  10709 NA 78704 53821 NA NA NA NA 841151836 NA ...
+##  $ cycle               : int  2012 NA 2012 2012 NA NA NA NA 2016 NA ...</code></pre>
+<p>The format of the transaction date (<code>transaction_dt</code>) right now is a little hard to read (MMDDYYYY). We can use the <code>lubridate</code> package to make them more human-readable. The function <code>mdy()</code> (from lubridate) takes a date in “month day year” and converts it to “year-month-day”. It also then stores that value as a date object!</p>
+<pre class="r"><code>donations_small_mutate &lt;- # create a new table
+  donations_small %&gt;% # start with our original data and pass it down to the mutate function
+  mutate(date_formatted = mdy(transaction_dt)) # create a new variable called date_formatted that is the output from the mdy() function
+
+str(donations_small_mutate)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    100000 obs. of  32 variables:
+##  $ cmte_nm             : chr  &quot;ROMNEY FOR PRESIDENT INC.&quot; NA &quot;OBAMA FOR AMERICA&quot; &quot;RICK SANTORUM FOR PRESIDENT INC.&quot; ...
+##  $ cmte_id             : chr  &quot;C00431171&quot; NA &quot;C00431445&quot; &quot;C00496034&quot; ...
+##  $ cmte_tp             : chr  &quot;P&quot; NA &quot;P&quot; &quot;P&quot; ...
+##  $ cmte_pty            : chr  &quot;REP&quot; NA &quot;DEM&quot; &quot;REP&quot; ...
+##  $ cand_name           : chr  &quot;ROMNEY, MITT&quot; NA &quot;OBAMA, BARACK&quot; &quot;SANTORUM, RICHARD J.&quot; ...
+##  $ cand_pty_affiliation: chr  &quot;REP&quot; NA &quot;DEM&quot; &quot;REP&quot; ...
+##  $ cand_office_st      : chr  &quot;US&quot; NA &quot;US&quot; &quot;US&quot; ...
+##  $ cand_office         : chr  &quot;P&quot; NA &quot;P&quot; &quot;P&quot; ...
+##  $ cand_office_district: chr  &quot;0&quot; NA &quot;0&quot; &quot;0&quot; ...
+##  $ cand_status         : chr  &quot;C&quot; NA &quot;C&quot; &quot;C&quot; ...
+##  $ rpt_tp              : chr  &quot;M9&quot; NA &quot;12G&quot; &quot;M4&quot; ...
+##  $ transaction_pgi     : chr  &quot;P&quot; NA &quot;G&quot; &quot;P&quot; ...
+##  $ transaction_tp      : chr  &quot;15&quot; NA &quot;15&quot; &quot;15&quot; ...
+##  $ entity_tp           : chr  &quot;IND&quot; NA &quot;IND&quot; &quot;IND&quot; ...
+##  $ cleaned_name        : chr  &quot;GUCCIONE, LOUIS J. MR.&quot; NA &quot;FORD, GLEN&quot; &quot;FARRIS, MELVIN&quot; ...
+##  $ city                : chr  &quot;EASTCHESTER&quot; NA &quot;AUSTIN&quot; &quot;PRAIRIE DU CHIEN&quot; ...
+##  $ state               : chr  &quot;NY&quot; NA &quot;TX&quot; &quot;WI&quot; ...
+##  $ zip_code            : int  10709 NA 78704 53821 NA NA NA NA 841151836 NA ...
+##  $ employer            : chr  &quot;INTER DIGITAL INC.&quot; NA &quot;DEMAND MEDIA/PLUCK&quot; &quot;3M&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; NA &quot;ENGINEER (SOFTWARE)&quot; &quot;ENGINEER&quot; ...
+##  $ classification      : chr  &quot;Engineer&quot; NA &quot;Engineer&quot; &quot;Engineer&quot; ...
+##  $ transaction_dt      : int  8162012 NA 10082012 3052012 NA NA NA NA 1212016 NA ...
+##  $ cycle               : int  2012 NA 2012 2012 NA NA NA NA 2016 NA ...
+##  $ transaction_amt     : int  200 NA 200 200 NA NA NA NA 25 NA ...
+##  $ 2016_dollars        : num  209 NA 209 209 NA NA NA NA 25 NA ...
+##  $ other_id            : chr  NA NA NA NA ...
+##  $ tran_id             : chr  &quot;SA17.2062014&quot; NA &quot;C24193008&quot; &quot;SA17.800453&quot; ...
+##  $ file_num            : int  896743 NA 897092 780310 NA NA NA NA 1077648 NA ...
+##  $ memo_cd             : chr  NA NA NA NA ...
+##  $ memo_text           : chr  NA NA NA NA ...
+##  $ sub_id              : num  4.12e+18 NA 4.12e+18 4.04e+18 NA ...
+##  $ date_formatted      : Date, format: &quot;2012-08-16&quot; NA ...</code></pre>
+</div>
+<div id="row-verbs-filter-and-arrange" class="section level2">
+<h2>Row verbs: filter and arrange</h2>
+<p><code>filter()</code> and <code>arrange()</code> perform actions on the rows of our dataframe. <code>filter()</code> takes out observations we don’t want and <code>arrange()</code> sorts our data however we specify!</p>
+<p>This data is pretty messy! At least for me, one of the most important variables is the transaction amount (<code>transaction_amt</code>), but there are quite a few <code>NA</code> values in the data. Let’s <code>filter</code> out the <code>NA</code> cases!</p>
+<pre class="r"><code>donations_small_filter &lt;- # create a new table
+  donations_small %&gt;% # start with our original data and pass it down to the mutate function
+  filter(!is.na(transaction_amt)) # this says &quot;take out any na amounts&quot;. The &quot;!&quot; means &quot;not&quot;, so the whole function is finding any &quot;not na&quot; values
+
+str(donations_small_filter)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    53362 obs. of  31 variables:
+##  $ cmte_nm             : chr  &quot;ROMNEY FOR PRESIDENT INC.&quot; &quot;OBAMA FOR AMERICA&quot; &quot;RICK SANTORUM FOR PRESIDENT INC.&quot; &quot;BERNIE 2016&quot; ...
+##  $ cmte_id             : chr  &quot;C00431171&quot; &quot;C00431445&quot; &quot;C00496034&quot; &quot;C00577130&quot; ...
+##  $ cmte_tp             : chr  &quot;P&quot; &quot;P&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ cmte_pty            : chr  &quot;REP&quot; &quot;DEM&quot; &quot;REP&quot; &quot;DEM&quot; ...
+##  $ cand_name           : chr  &quot;ROMNEY, MITT&quot; &quot;OBAMA, BARACK&quot; &quot;SANTORUM, RICHARD J.&quot; &quot;SANDERS, BERNARD&quot; ...
+##  $ cand_pty_affiliation: chr  &quot;REP&quot; &quot;DEM&quot; &quot;REP&quot; &quot;DEM&quot; ...
+##  $ cand_office_st      : chr  &quot;US&quot; &quot;US&quot; &quot;US&quot; &quot;US&quot; ...
+##  $ cand_office         : chr  &quot;P&quot; &quot;P&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ cand_office_district: chr  &quot;0&quot; &quot;0&quot; &quot;0&quot; &quot;0&quot; ...
+##  $ cand_status         : chr  &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; ...
+##  $ rpt_tp              : chr  &quot;M9&quot; &quot;12G&quot; &quot;M4&quot; &quot;M2&quot; ...
+##  $ transaction_pgi     : chr  &quot;P&quot; &quot;G&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ transaction_tp      : chr  &quot;15&quot; &quot;15&quot; &quot;15&quot; &quot;15&quot; ...
+##  $ entity_tp           : chr  &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; ...
+##  $ cleaned_name        : chr  &quot;GUCCIONE, LOUIS J. MR.&quot; &quot;FORD, GLEN&quot; &quot;FARRIS, MELVIN&quot; &quot;GILBERT, NATHAN&quot; ...
+##  $ city                : chr  &quot;EASTCHESTER&quot; &quot;AUSTIN&quot; &quot;PRAIRIE DU CHIEN&quot; &quot;SALT LAKE CITY&quot; ...
+##  $ state               : chr  &quot;NY&quot; &quot;TX&quot; &quot;WI&quot; &quot;UT&quot; ...
+##  $ zip_code            : int  10709 78704 53821 841151836 14691180 146082430 48176 852515741 857502402 207404331 ...
+##  $ employer            : chr  &quot;INTER DIGITAL INC.&quot; &quot;DEMAND MEDIA/PLUCK&quot; &quot;3M&quot; &quot;DELCAM USA&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; &quot;ENGINEER (SOFTWARE)&quot; &quot;ENGINEER&quot; &quot;ENGINEER (SOFTWARE)&quot; ...
+##  $ classification      : chr  &quot;Engineer&quot; &quot;Engineer&quot; &quot;Engineer&quot; &quot;Engineer&quot; ...
+##  $ transaction_dt      : int  8162012 10082012 3052012 1212016 3152016 12312015 12162007 9262016 7302015 9192015 ...
+##  $ cycle               : int  2012 2012 2012 2016 2016 2016 2008 2016 2016 2016 ...
+##  $ transaction_amt     : int  200 200 200 25 35 3 500 250 100 250 ...
+##  $ 2016_dollars        : num  209 209 209 25 35 ...
+##  $ other_id            : chr  NA NA NA NA ...
+##  $ tran_id             : chr  &quot;SA17.2062014&quot; &quot;C24193008&quot; &quot;SA17.800453&quot; &quot;VPF7BHNKSN6&quot; ...
+##  $ file_num            : int  896743 897092 780310 1077648 1066824 1077572 329578 1137625 1029000 1035771 ...
+##  $ memo_cd             : chr  NA NA NA NA ...
+##  $ memo_text           : chr  NA NA NA &quot;* EARMARKED CONTRIBUTION: SEE BELOW&quot; ...
+##  $ sub_id              : num  4.12e+18 4.12e+18 4.04e+18 4.06e+18 4.05e+18 ...</code></pre>
+<p>But now if we look at the data there are a few negative transaction amounts. There’s probably a reason for that, but in my little bit of googling I didn’t find a good explanation. For the sake of learning about using multiple arguments with <code>filter()</code>, let’s take them out!</p>
+<pre class="r"><code>donations_small_filter &lt;- 
+  donations_small %&gt;% # everything up to this point is the same as the last chunk
+  filter(!is.na(transaction_amt), transaction_amt &gt; 0) # add the second filter condition (positive amount) with a comma after the first condition. The comma means &quot;and&quot;. To do &quot;or&quot; you can use &quot;|&quot;. 
+
+str(donations_small_filter)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    53118 obs. of  31 variables:
+##  $ cmte_nm             : chr  &quot;ROMNEY FOR PRESIDENT INC.&quot; &quot;OBAMA FOR AMERICA&quot; &quot;RICK SANTORUM FOR PRESIDENT INC.&quot; &quot;BERNIE 2016&quot; ...
+##  $ cmte_id             : chr  &quot;C00431171&quot; &quot;C00431445&quot; &quot;C00496034&quot; &quot;C00577130&quot; ...
+##  $ cmte_tp             : chr  &quot;P&quot; &quot;P&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ cmte_pty            : chr  &quot;REP&quot; &quot;DEM&quot; &quot;REP&quot; &quot;DEM&quot; ...
+##  $ cand_name           : chr  &quot;ROMNEY, MITT&quot; &quot;OBAMA, BARACK&quot; &quot;SANTORUM, RICHARD J.&quot; &quot;SANDERS, BERNARD&quot; ...
+##  $ cand_pty_affiliation: chr  &quot;REP&quot; &quot;DEM&quot; &quot;REP&quot; &quot;DEM&quot; ...
+##  $ cand_office_st      : chr  &quot;US&quot; &quot;US&quot; &quot;US&quot; &quot;US&quot; ...
+##  $ cand_office         : chr  &quot;P&quot; &quot;P&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ cand_office_district: chr  &quot;0&quot; &quot;0&quot; &quot;0&quot; &quot;0&quot; ...
+##  $ cand_status         : chr  &quot;C&quot; &quot;C&quot; &quot;C&quot; &quot;C&quot; ...
+##  $ rpt_tp              : chr  &quot;M9&quot; &quot;12G&quot; &quot;M4&quot; &quot;M2&quot; ...
+##  $ transaction_pgi     : chr  &quot;P&quot; &quot;G&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ transaction_tp      : chr  &quot;15&quot; &quot;15&quot; &quot;15&quot; &quot;15&quot; ...
+##  $ entity_tp           : chr  &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; ...
+##  $ cleaned_name        : chr  &quot;GUCCIONE, LOUIS J. MR.&quot; &quot;FORD, GLEN&quot; &quot;FARRIS, MELVIN&quot; &quot;GILBERT, NATHAN&quot; ...
+##  $ city                : chr  &quot;EASTCHESTER&quot; &quot;AUSTIN&quot; &quot;PRAIRIE DU CHIEN&quot; &quot;SALT LAKE CITY&quot; ...
+##  $ state               : chr  &quot;NY&quot; &quot;TX&quot; &quot;WI&quot; &quot;UT&quot; ...
+##  $ zip_code            : int  10709 78704 53821 841151836 14691180 146082430 48176 852515741 857502402 207404331 ...
+##  $ employer            : chr  &quot;INTER DIGITAL INC.&quot; &quot;DEMAND MEDIA/PLUCK&quot; &quot;3M&quot; &quot;DELCAM USA&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; &quot;ENGINEER (SOFTWARE)&quot; &quot;ENGINEER&quot; &quot;ENGINEER (SOFTWARE)&quot; ...
+##  $ classification      : chr  &quot;Engineer&quot; &quot;Engineer&quot; &quot;Engineer&quot; &quot;Engineer&quot; ...
+##  $ transaction_dt      : int  8162012 10082012 3052012 1212016 3152016 12312015 12162007 9262016 7302015 9192015 ...
+##  $ cycle               : int  2012 2012 2012 2016 2016 2016 2008 2016 2016 2016 ...
+##  $ transaction_amt     : int  200 200 200 25 35 3 500 250 100 250 ...
+##  $ 2016_dollars        : num  209 209 209 25 35 ...
+##  $ other_id            : chr  NA NA NA NA ...
+##  $ tran_id             : chr  &quot;SA17.2062014&quot; &quot;C24193008&quot; &quot;SA17.800453&quot; &quot;VPF7BHNKSN6&quot; ...
+##  $ file_num            : int  896743 897092 780310 1077648 1066824 1077572 329578 1137625 1029000 1035771 ...
+##  $ memo_cd             : chr  NA NA NA NA ...
+##  $ memo_text           : chr  NA NA NA &quot;* EARMARKED CONTRIBUTION: SEE BELOW&quot; ...
+##  $ sub_id              : num  4.12e+18 4.12e+18 4.04e+18 4.06e+18 4.05e+18 ...</code></pre>
+<p>Now let’s order the donations from greatest to least!</p>
+<pre class="r"><code>donations_small_ordered &lt;- # create a new table
+  donations_small %&gt;% # start with our original data
+  arrange(desc(transaction_amt)) # arrange the table according to the transaction amount. desc tells R that we want the values to be descening (greatest to least!)
+
+str(donations_small_ordered)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    100000 obs. of  31 variables:
+##  $ cmte_nm             : chr  &quot;NRCC&quot; &quot;DSCC&quot; &quot;REPUBLICAN NATIONAL COMMITTEE&quot; &quot;NRSC&quot; ...
+##  $ cmte_id             : chr  &quot;C00075820&quot; &quot;C00042366&quot; &quot;C00003418&quot; &quot;C00027466&quot; ...
+##  $ cmte_tp             : chr  &quot;Y&quot; &quot;Y&quot; &quot;Y&quot; &quot;Y&quot; ...
+##  $ cmte_pty            : chr  &quot;REP&quot; &quot;DEM&quot; &quot;REP&quot; &quot;REP&quot; ...
+##  $ cand_name           : chr  NA NA NA NA ...
+##  $ cand_pty_affiliation: chr  &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; ...
+##  $ cand_office_st      : chr  &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; ...
+##  $ cand_office         : chr  &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; ...
+##  $ cand_office_district: chr  &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; ...
+##  $ cand_status         : chr  &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; &quot;NULL&quot; ...
+##  $ rpt_tp              : chr  &quot;YE&quot; &quot;M3&quot; &quot;M10&quot; &quot;M5&quot; ...
+##  $ transaction_pgi     : chr  &quot;P&quot; &quot;P&quot; &quot;P&quot; &quot;P&quot; ...
+##  $ transaction_tp      : chr  &quot;32&quot; &quot;15&quot; &quot;15&quot; &quot;15&quot; ...
+##  $ entity_tp           : chr  &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; &quot;IND&quot; ...
+##  $ cleaned_name        : chr  &quot;RUSSELL, THOMAS H. MR.&quot; &quot;SALL, JOHN P&quot; &quot;NEW, WILLIAM C. MR.&quot; &quot;RASTIN, THOMAS MR&quot; ...
+##  $ city                : chr  &quot;TULSA&quot; &quot;CARY&quot; &quot;MORGAN CITY&quot; &quot;MOUNT VERNON&quot; ...
+##  $ state               : chr  &quot;OK&quot; &quot;NC&quot; &quot;LA&quot; &quot;OH&quot; ...
+##  $ zip_code            : int  741365718 275133067 703802449 430503842 947072052 352265013 940246537 99163 78520 33149 ...
+##  $ employer            : chr  &quot;UOP RUSSELL&quot; &quot;SAS INSTITUTE, INC.&quot; &quot;NEW INDUSTRIES INC.&quot; &quot;ARIEL CORPORATION&quot; ...
+##  $ cleanedoccupation   : chr  &quot;ENGINEER&quot; &quot;EXECUTIVE / STATISTICIAN&quot; &quot;ENGINEER&quot; &quot;ENGINEERING VICE PRESIDENT&quot; ...
+##  $ classification      : chr  &quot;Engineer&quot; &quot;Math-Stat&quot; &quot;Engineer&quot; &quot;Engineer&quot; ...
+##  $ transaction_dt      : int  12282015 2242016 9182015 4292016 7292014 10102014 11052013 12192011 4122010 7092008 ...
+##  $ cycle               : int  2016 2016 2016 2016 2014 2014 2014 2012 2010 2008 ...
+##  $ transaction_amt     : int  100200 33400 33400 33400 32400 32400 32400 30800 30400 28500 ...
+##  $ 2016_dollars        : num  101603 33400 33868 33400 32821 ...
+##  $ other_id            : chr  NA NA NA NA ...
+##  $ tran_id             : chr  &quot;SA17.16090897&quot; &quot;SA03291642731051&quot; &quot;2015M10L11AI04571&quot; &quot;SA06101689341267&quot; ...
+##  $ file_num            : int  1045467 1057624 1030648 1068169 949880 985167 898497 764824 471149 363474 ...
+##  $ memo_cd             : chr  &quot;X&quot; NA NA NA ...
+##  $ memo_text           : chr  &quot;JFC ATTRIB: TEAM RYAN&quot; NA NA &quot;CONTRIBUTION&quot; ...
+##  $ sub_id              : num  4.02e+18 2.03e+18 4.10e+18 2.06e+18 2.09e+18 ...</code></pre>
+</div>
+<div id="group-verbs-group_by-and-summarise" class="section level2">
+<h2>Group verbs: group_by and summarise</h2>
+<p>We can also perform actions on a “group” of variables. You can think of this as changing the case/observation in your table. A case/observation is what one row represents. In the <code>donations</code> table, a case/observation is one particular transaction. <code>group_by()</code> and <code>summarise()</code> work together to help us manipulate the observations.</p>
+<p><code>group_by()</code> specifies how we want to group our observations (what variable will serve as the base of our obeservation) and <code>summarise()</code> specifies how we want to talk about those groups. Questions that require grouping often have “per” or “by” somewhere in them, or some variation of that. I think seeing this is a picture helps!</p>
+<div class="figure">
+<img src="group_by_viz.JPG" />
+
+</div>
+<p>Let’s find total donations <strong>per</strong> candidate. In this question we will see a longer series of functions with pipes!</p>
+<pre class="r"><code>donations_small_cand_groups &lt;- # create a new table
+  donations_small %&gt;% # start with the original data and pass it down to group_by
+  group_by(cand_name) %&gt;% # we are counting per candidate, so that&#39;s the grouping variable
+  summarise(total = sum(transaction_amt, na.rm = TRUE)) # create a new variable that sums the transactions for each candidate (removing the na values with na.rm = TRUE) then save it as &quot;total&quot;. The new variable name can be anything! You aren&#39;t bound to using &quot;total&quot;. 
+
+str(donations_small_cand_groups)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    1863 obs. of  2 variables:
+##  $ cand_name: chr  &quot;ABERCROMBIE, NEIL&quot; &quot;ABRAHAM, RALPH LEE&quot; &quot;ACHADJIAN, KHATCHIK&quot; &quot;ADAMS, ALMA SHEALEY&quot; ...
+##  $ total    : int  1300 1500 4000 125 500 250 500 250 550 7930 ...</code></pre>
+<p><strong>Notice</strong> that this new table has only 2 variables! What happened?! If you group your observations, it won’t keep any information aside from the grouping variable and the summarised information. There are some tricks to save more information, but we can talk about those later.</p>
+<p>Let’s also find the total donations per occupation type.</p>
+<pre class="r"><code>donations_small_occ_groups &lt;- # create a new table
+  donations_small %&gt;% # start with the original data and pass it to group_by
+  group_by(cleanedoccupation) %&gt;% # we are counting per occupation, so that&#39;s the grouping variable
+  summarise(total = sum(transaction_amt, na.rm = TRUE)) # the summarise function is the exact same as the one above! Even though we are using different groupings. 
+
+str(donations_small_occ_groups)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    3173 obs. of  2 variables:
+##  $ cleanedoccupation: chr  &quot;&#39;&#39;DOMESTIC ENGINEER!&#39;&#39;&quot; &quot;(CHEMIST)&quot; &quot;1ST CLASS OPERATING ENGINEER&quot; &quot;8TH GRADE MATH TEACHER&quot; ...
+##  $ total            : int  24390 152615 50 55 13 500 285 1000 250 250 ...</code></pre>
+<p>Another common use of <code>summarise()</code> is finding the total number of observations in each group. To do this, you will use the function <code>n()</code>, and it doesn’t take any arguments. Let’s see an example.</p>
+<p>Which party has received the most donations?</p>
+<pre class="r"><code>donations_most_grouped &lt;- # create a new table
+  donations_small %&gt;% # start with our original data
+  group_by(cand_pty_affiliation) %&gt;% # we want to calculate per party
+  summarise(donations_n = n()) # n just counts how many observations were in each party group. I think of it as &quot;n observations&quot; or &quot;number of observations&quot; to remember the &quot;n&quot; part.
+
+str(donations_most_grouped)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    13 obs. of  2 variables:
+##  $ cand_pty_affiliation: chr  &quot;CST&quot; &quot;DEM&quot; &quot;GRE&quot; &quot;IND&quot; ...
+##  $ donations_n         : int  2 32624 109 77 174 14 2 9823 13 10518 ...</code></pre>
+</div>
+</div>
+<div id="practice" class="section level1">
+<h1>Practice</h1>
+<p>In the above examples, we started from scratch each time. But now that we have seen the basics, trying combining the methods to get cleaner final data! For example, work with <code>NA</code> transaction amounts filtered out.</p>
+<div id="intermediate" class="section level2">
+<h2>Intermediate</h2>
+<ol style="list-style-type: decimal">
+<li><p>Are there states that tend to have more active donors? Cities?</p></li>
+<li><p>How many people donated less than $25 or more than $200?</p></li>
+<li><p>Who are the biggest donors? You could possibly define this as anyone who donated at least 1.5x the mean of the donations per person. You could also define this as the more standard “outlier” and calculate 1.5x the interquartile range then use that to find outliers. Let me know if this calculation is new for you!</p></li>
+<li><p>What is the name, city, state, and occupation of the person who has donated the highest number of times total?</p></li>
+<li><p>Which candidate has received the most donations? And which candidate has received the most total money in donations?</p></li>
+</ol>
+</div>
+<div id="a-little-more-than-intermediate" class="section level2">
+<h2>A little more than intermediate</h2>
+<p>Try making a plot to help answer each question for <code>ggplot</code> practice, too!</p>
+<ol style="list-style-type: decimal">
+<li><p>Of major donors (let’s say more than $200 for this question), what professions are most common?</p></li>
+<li><p>Which professions tend to donate more to which candidates? (You might need to have two grouping variables for this!).</p></li>
+<li><p>Check out some of the temporal patterns! You could look at how donations are affected by major speeches, conventions, announcements, etc.</p></li>
+<li><p>Did you see anything interesting in the data? Or in one of the other practice questions? Explore it!</p></li>
+</ol>
+</div>
+</div>
+<div id="answers" class="section level1">
+<h1>Answers</h1>
+<div id="intermediate-1" class="section level2">
+<h2>Intermediate</h2>
+<ol style="list-style-type: decimal">
+<li>Are there states that tend to have more active donors? Cities?</li>
+</ol>
+<div class="fold s">
+<pre class="r"><code>states &lt;- donations_small %&gt;%
+  group_by(state) %&gt;%
+  summarize(total_donors = n(),
+            total_dollars = sum(transaction_amt, na.rm = TRUE)) %&gt;%
+  arrange(desc(total_donors))
+
+str(states)</code></pre>
+<pre><code>## Classes &#39;tbl_df&#39;, &#39;tbl&#39; and &#39;data.frame&#39;:    61 obs. of  3 variables:
+##  $ state        : chr  NA &quot;CA&quot; &quot;TX&quot; &quot;NY&quot; ...
+##  $ total_donors : int  46721 11538 4540 2914 2906 2791 1958 1875 1794 1693 ...
+##  $ total_dollars: int  55681 3001120 1626395 698710 693575 647527 546385 535372 455786 438736 ...</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>How many people donated less than $25 or more than $200?</li>
+</ol>
+<pre class="r"><code>donations_extremes &lt;- donations_small %&gt;%
+  filter(transaction_amt &gt; 200 | transaction_amt &lt; 25)
+
+nrow(donations_extremes)</code></pre>
+<pre><code>## [1] 29738</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Who are the biggest donors? You could possibly define this as anyone who donated at least 1.5x the mean of the donations per person. You could also define this as the more standard “outlier” and calculate 1.5x the interquartile range then use that to find outliers. Let me know if this calculation is new for you!</li>
+</ol>
+<pre class="r"><code>biggest_donors_mean &lt;- donations_small %&gt;%
+  filter(transaction_amt &gt; 1.5 * mean(transaction_amt, na.rm=TRUE))
+
+nrow(biggest_donors_mean)</code></pre>
+<pre><code>## [1] 9512</code></pre>
+<pre class="r"><code>biggest_donors_iqr &lt;- donations_small %&gt;%
+  filter(transaction_amt &gt; 1.5 * IQR(transaction_amt, na.rm = TRUE) * quantile(transaction_amt, 0.75, na.rm = TRUE))
+
+nrow(biggest_donors_iqr)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>biggest_donors_iqr</code></pre>
+<pre><code>## # A tibble: 1 x 31
+##   cmte_nm   cmte_id cmte_tp cmte_pty cand_name cand_pty_affiliation
+##     &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt;     &lt;chr&gt;                &lt;chr&gt;
+## 1    NRCC C00075820       Y      REP      &lt;NA&gt;                 NULL
+## # ... with 25 more variables: cand_office_st &lt;chr&gt;, cand_office &lt;chr&gt;,
+## #   cand_office_district &lt;chr&gt;, cand_status &lt;chr&gt;, rpt_tp &lt;chr&gt;,
+## #   transaction_pgi &lt;chr&gt;, transaction_tp &lt;chr&gt;, entity_tp &lt;chr&gt;,
+## #   cleaned_name &lt;chr&gt;, city &lt;chr&gt;, state &lt;chr&gt;, zip_code &lt;int&gt;,
+## #   employer &lt;chr&gt;, cleanedoccupation &lt;chr&gt;, classification &lt;chr&gt;,
+## #   transaction_dt &lt;int&gt;, cycle &lt;int&gt;, transaction_amt &lt;int&gt;,
+## #   `2016_dollars` &lt;dbl&gt;, other_id &lt;chr&gt;, tran_id &lt;chr&gt;, file_num &lt;int&gt;,
+## #   memo_cd &lt;chr&gt;, memo_text &lt;chr&gt;, sub_id &lt;dbl&gt;</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>What is the name, city, state, and occupation of the person who has donated the highest number of times total?</li>
+</ol>
+<pre class="r"><code>most_often_donor &lt;- donations_small %&gt;%
+  group_by(cleaned_name) %&gt;%
+  summarize(total = n(),
+            state = min(state),
+            city = min(city),
+            occupation = min(cleanedoccupation)) %&gt;%
+  filter(!is.na(cleaned_name)) %&gt;% # take out NA name
+  arrange(desc(total))
+
+head(most_often_donor)</code></pre>
+<pre><code>## # A tibble: 6 x 5
+##        cleaned_name total state      city            occupation
+##               &lt;chr&gt; &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;                 &lt;chr&gt;
+## 1    SPURR, CHARLES    84    MA WAKEFIELD   ENGINEER (SOFTWARE)
+## 2 BROWNLEE, MICHAEL    41    NY  NEW YORK PHYSICIAN &amp; SCIENTIST
+## 3    LANE, COURTNEY    40    CA   VENTURA    RESEARCH SCIENTIST
+## 4   WARNER, RICHARD    40    TX ARLINGTON              ENGINEER
+## 5     SMITH, PHILIP    36    CO    DENVER           BI ENGINEER
+## 6 WARTENBERG, NIELS    36    MN    CHASKA              ENGINEER</code></pre>
+<pre class="r"><code># I looked up Charles Spurr and he donates a lot to Tammy Duckworth!</code></pre>
+<ol start="5" style="list-style-type: decimal">
+<li>Which candidate has received the most donations? And which candidate has received the most total money in donations?</li>
+</ol>
+<pre class="r"><code>candidates_most &lt;- donations_small %&gt;%
+  group_by(cand_name) %&gt;%
+  summarize(times = n(),
+            money = sum(transaction_amt, na.rm=TRUE)) %&gt;%
+  filter(!is.na(cand_name)) %&gt;%
+  arrange(desc(times))
+
+head(candidates_most)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##                       cand_name times   money
+##                           &lt;chr&gt; &lt;int&gt;   &lt;int&gt;
+## 1              SANDERS, BERNARD 11888  690906
+## 2       CLINTON, HILLARY RODHAM  9021 1094260
+## 3                 OBAMA, BARACK  4300 1871887
+## 4 &quot;CRUZ, RAFAEL EDWARD \&quot;TED\&quot;&quot;  1892  255489
+## 5                  ROMNEY, MITT   815  455661
+## 6                     PAUL, RON   800  337880</code></pre>
+<pre class="r"><code>head(arrange(candidates_most, desc(money)))</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##                 cand_name times   money
+##                     &lt;chr&gt; &lt;int&gt;   &lt;int&gt;
+## 1           OBAMA, BARACK  4300 1871887
+## 2 CLINTON, HILLARY RODHAM  9021 1094260
+## 3        SANDERS, BERNARD 11888  690906
+## 4            ROMNEY, MITT   815  455661
+## 5          MCCAIN, JOHN S   589  340218
+## 6               PAUL, RON   800  337880</code></pre>
+</div>
+</div>
+<div id="a-little-more-than-intermediate-1" class="section level2">
+<h2>A little more than intermediate</h2>
+<ol style="list-style-type: decimal">
+<li>Of major donors (let’s say more than $1000 for this question), what professions are most common? Which ones donate the most total? Maybe define this as the top 10 occupations.</li>
+</ol>
+<div class="fold s">
+<pre class="r"><code>professions_common &lt;- donations_small %&gt;%
+  filter(transaction_amt &gt; 1000, !is.na(cleanedoccupation)) %&gt;%
+  group_by(cleanedoccupation) %&gt;%
+  summarise(total = n(),
+            money = sum(transaction_amt, na.rm=TRUE))
+
+professions_common %&gt;%
+  arrange(desc(total)) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(x = cleanedoccupation, y = total)) +
+  geom_bar(stat=&quot;identity&quot;, fill = &quot;cornflowerblue&quot;) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = &quot;Engineers donate a lot&quot;)</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<pre class="r"><code>professions_common$cleanedoccupation &lt;- factor(professions_common$cleanedoccupation, levels = professions_common$cleanedoccupation[order(professions_common$money, decreasing = TRUE)])
+
+professions_common %&gt;%
+  arrange(desc(money)) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(x = cleanedoccupation, y = money)) +
+  geom_bar(stat=&quot;identity&quot;, fill = &quot;cornflowerblue&quot;) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title = element_text()) +
+  labs(y = &quot;Cumulative amount donated&quot;,
+       title = &quot;Where does the STEM money come from?&quot;,
+       subtitle = &quot;Occupations given in FEC filing data from 100000 donations&quot;,
+       x = &quot;Occupation&quot;)</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<ol start="2" style="list-style-type: decimal">
+<li>Which professions tend to donate more to which candidates? (You might need to have two grouping variables for this!).</li>
+</ol>
+<pre class="r"><code>double_group &lt;- donations_small %&gt;%
+  filter(!is.na(cand_name), !is.na(cleanedoccupation)) %&gt;% # I want only entries with occupation and candidate listed
+  group_by(cand_name, cleanedoccupation) %&gt;%
+  summarize(times = n(),
+            money = sum(transaction_amt, na.rm = TRUE)) %&gt;%
+  arrange(desc(money))
+
+head(double_group)</code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   cand_name [4]
+##                 cand_name   cleanedoccupation times  money
+##                     &lt;chr&gt;               &lt;chr&gt; &lt;int&gt;  &lt;int&gt;
+## 1           OBAMA, BARACK            ENGINEER  1182 492763
+## 2 CLINTON, HILLARY RODHAM            ENGINEER  2392 339441
+## 3           OBAMA, BARACK ENGINEER (SOFTWARE)   627 295259
+## 4           OBAMA, BARACK           SCIENTIST   494 222209
+## 5            ROMNEY, MITT            ENGINEER   373 221234
+## 6        SANDERS, BERNARD ENGINEER (SOFTWARE)  3262 220244</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Check out some temporal patterns!</li>
+</ol>
+<pre class="r"><code>over_time &lt;- donations_small %&gt;%
+  mutate(date = mdy(transaction_dt)) %&gt;%
+  filter(!is.na(date)) %&gt;%
+  group_by(date) %&gt;%
+  summarize(total = n(),
+            money = sum(transaction_amt, na.rm = TRUE),
+            mean = mean(transaction_amt, na.rm = TRUE)) 
+
+ggplot(over_time, aes(x = date, y = total)) +
+  geom_point(alpha = 0.2, color = &quot;gray2&quot;) +
+  geom_smooth(color = &quot;#41f4dc&quot; ) + 
+  ylim(0,450) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  labs(title = &quot;The election in 2016 changed how often we donate&quot;,
+       y = &quot;Number of donations&quot;, 
+       x = &quot;Date&quot;) </code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39;</code></pre>
+<pre><code>## Warning: Removed 14 rows containing missing values (geom_smooth).</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(over_time, aes(x = date, y = mean)) +
+  geom_point(alpha = 0.2, color = &quot;gray2&quot;) +
+  geom_smooth(color = &quot;#41f4dc&quot; ) + 
+  ylim(0,450) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  labs(title = &quot;More donations come from small amounts&quot;,
+       y = &quot;Average donation amount ($)&quot;, 
+       x = &quot;Date&quot;) </code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39;</code></pre>
+<pre><code>## Warning: Removed 1408 rows containing non-finite values (stat_smooth).</code></pre>
+<pre><code>## Warning: Removed 1408 rows containing missing values (geom_point).</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(over_time, aes(x = date, y = money)) +
+  geom_point(alpha = 0.2, color = &quot;gray2&quot;) +
+  geom_smooth(color = &quot;#41f4dc&quot; ) + 
+  ylim(0,450) +
+  theme_fivethirtyeight() +
+  theme(axis.title = element_text()) +
+  labs(title = &quot;Total amounts have been falling since 2012&quot;,
+       y = &quot;Total amount donated ($)&quot;, 
+       x = &quot;Date&quot;) </code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39;</code></pre>
+<pre><code>## Warning: Removed 2864 rows containing non-finite values (stat_smooth).</code></pre>
+<pre><code>## Warning: Removed 2864 rows containing missing values (geom_point).</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<ol start="4" style="list-style-type: decimal">
+<li>I wanted to look at specific employers and see which ones donate the most times and the highest quantities!</li>
+</ol>
+<pre class="r"><code>employers &lt;- donations_small %&gt;%
+  filter(!is.na(employer), !(employer) %in% c(&quot;SELF-EMPLOYED&quot;, &quot;SELF EMPLOYED&quot;, &quot;SELF&quot;, &quot;RETIRED&quot;, &quot;NOT EMPLOYED&quot;, &quot;NONE&quot;)) %&gt;%
+  group_by(employer) %&gt;%
+  summarize(times = n(),
+            money = sum(transaction_amt, na.rm=TRUE))
+
+employers$employer &lt;- factor(employers$employer, levels = employers$employer[order(employers$times, decreasing = TRUE)])
+
+employers %&gt;%
+  arrange(desc(times)) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(y = times, x = employer)) +
+  geom_bar(stat=&quot;identity&quot;, fill = &quot;cornflowerblue&quot;) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = &quot;Politically active employees: where do they work?&quot;,
+       subtitle = &quot;Employers given in FEC filing data from 100000 donations&quot;,
+       y = &quot;Number of donations&quot;)</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<pre class="r"><code>employers$employer &lt;- factor(employers$employer, levels = employers$employer[order(employers$money, decreasing = TRUE)])
+
+employers %&gt;%
+  arrange(desc(money)) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(y = money, x = employer)) +
+  geom_bar(stat=&quot;identity&quot;, fill = &quot;cornflowerblue&quot;) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = &quot;Where does the money come from? Google.&quot;,
+       subtitle = &quot;Employers given in FEC filing data from 100,000 donations&quot;,
+       y = &quot;Cumulative amount donated&quot;)</code></pre>
+<p><img src="donations-dplyr_files/figure-html/unnamed-chunk-24-2.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="resources" class="section level1">
+<h1>Resources</h1>
+<ul>
+<li><p><a href="https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf">data wrangling cheat sheet</a></p></li>
+<li><p><a href="http://r4ds.had.co.nz/transform.html">R for Data Science: Data transformation (chapter 5)</a></p></li>
+<li><p>My <a href="http://katiejolly.io/bikeshare-dplyr/">DC bikeshare data</a> dplyr activity</p></li>
+</ul>
+<p>Do you know of other good dplyr activities? Let me know!</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
